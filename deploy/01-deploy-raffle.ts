@@ -20,11 +20,12 @@ const deployRaffle: DeployFunction = async function (hre: HardhatRuntimeEnvironm
 
     if (chainId == 31337) {
         // create VRFV2 Subscription
-        const vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
-        vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address
+        const vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock", (await deployments.get("VRFCoordinatorV2Mock")).address)
+        vrfCoordinatorV2Address = vrfCoordinatorV2Mock.target
         const transactionResponse = await vrfCoordinatorV2Mock.createSubscription()
         const transactionReceipt = await transactionResponse.wait()
-        subscriptionId = transactionReceipt.events[0].args.subId
+        // In Ethers v6, we look at logs. The mock's createSubscription emits an event with subId.
+        subscriptionId = transactionReceipt.logs[0].args.subId
         // Fund the subscription
         // Our mock makes it so we don't actually have to worry about sending fund
         await vrfCoordinatorV2Mock.fundSubscription(subscriptionId, FUND_AMOUNT)
@@ -52,13 +53,18 @@ const deployRaffle: DeployFunction = async function (hre: HardhatRuntimeEnvironm
         waitConfirmations: waitBlockConfirmations,
     })
 
+    if (developmentChains.includes(network.name)) {
+        const vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock", vrfCoordinatorV2Address)
+        await vrfCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address)
+    }
+
     // Verify the deployment
     if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
         await verify(raffle.address, args)
     }
 
-    log("Run Price Feed contract with command:")
+    log("Interact with Raffle contract with command:")
     const networkName = network.name == "hardhat" ? "localhost" : network.name
     log(`yarn hardhat run scripts/enterRaffle.js --network ${networkName}`)
     log("----------------------------------------------------")

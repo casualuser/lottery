@@ -2,20 +2,20 @@
 import { ethers, network, deployments } from "hardhat"
 import { Raffle } from "../typechain-types"
 
-async function mockKeepers() {
+async function pickWinner() {
     const raffleAddress = (await deployments.get("Raffle")).address
     const raffle: Raffle = await ethers.getContractAt("Raffle", raffleAddress)
     const checkData = ethers.keccak256(ethers.toUtf8Bytes(""))
+    
+    console.log("Checking if upkeep is needed...")
     const upkeepNeeded = await raffle.checkUpkeep.staticCall(checkData)
     
     if (upkeepNeeded[0]) {
-        console.log("Upkeep needed! Performing upkeep...")
+        console.log("Upkeep needed! Triggering winner selection...")
         const tx = await raffle.performUpkeep(checkData)
         const txReceipt = await tx.wait(1)
         
         // Find the event in logs
-        const requestId = txReceipt!.logs[1].topics[1] // Usually it's the second log emitted (1st from VRFCoordinator, 2nd from Raffle)
-        // More robust:
         const raffleInterface = raffle.interface
         let foundRequestId: string | undefined
         for (const log of txReceipt!.logs) {
@@ -28,26 +28,21 @@ async function mockKeepers() {
             } catch (e) { continue }
         }
 
-        console.log(`Performed upkeep with RequestId: ${foundRequestId}`)
-        if (network.config.chainId == 31337 && foundRequestId) {
-            await mockVrf(foundRequestId, raffle)
+        if (foundRequestId) {
+            console.log(`Fulfilling random words for RequestId: ${foundRequestId}`)
+            const vrfCoordinatorV2MockAddress = (await deployments.get("VRFCoordinatorV2Mock")).address
+            const vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock", vrfCoordinatorV2MockAddress)
+            await vrfCoordinatorV2Mock.fulfillRandomWords(foundRequestId, raffle.target)
+            
+            const recentWinner = await raffle.getRecentWinner()
+            console.log(`🏆 Success! The winner is: ${recentWinner}`)
         }
     } else {
-        console.log("No upkeep needed!")
+        console.log("No upkeep needed! Ensure the raffle is open and has players.")
     }
 }
 
-async function mockVrf(requestId: string, raffle: Raffle) {
-    console.log("We on a local network? Ok let's pretend...")
-    const vrfCoordinatorV2MockAddress = (await deployments.get("VRFCoordinatorV2Mock")).address
-    const vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock", vrfCoordinatorV2MockAddress)
-    await vrfCoordinatorV2Mock.fulfillRandomWords(requestId, raffle.target)
-    console.log("Responded!")
-    const recentWinner = await raffle.getRecentWinner()
-    console.log(`The winner is: ${recentWinner}`)
-}
-
-mockKeepers()
+pickWinner()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)

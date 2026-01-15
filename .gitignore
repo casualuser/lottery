@@ -6,9 +6,11 @@ node_modules
 coverage
 coverage.json
 typechain
+typechain-types
 
 # don't push the environment vars!
 .env
+.env.local
 
 # Built application files
 .DS*

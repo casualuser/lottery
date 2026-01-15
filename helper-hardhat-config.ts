@@ -1,16 +1,15 @@
 // @ts-ignore
 import { ethers } from "hardhat"
-import { BytesLike, BigNumber } from "ethers"
 
 export interface networkConfigItem {
     name: string
-    subscriptionId: BigNumber
-    gasLane: BytesLike
-    keepersUpdateInterval: BigNumber
-    charityRaffleDuration: BigNumber
-    raffleEntranceFee: BigNumber
-    jackpot: BigNumber
-    callbackGasLimit: BigNumber
+    subscriptionId: bigint
+    gasLane: string
+    keepersUpdateInterval: bigint
+    charityRaffleDuration: bigint
+    raffleEntranceFee: bigint
+    jackpot: bigint
+    callbackGasLimit: bigint
     vrfCoordinatorV2: string
     charity1: string
     charity2: string
@@ -24,13 +23,13 @@ export interface networkConfigInfo {
 export const networkConfig: networkConfigInfo = {
     31337: {
         name: "localhost",
-        subscriptionId: ethers.BigNumber.from("588"),
+        subscriptionId: BigInt("588"),
         gasLane: "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc", // 30 gwei
-        keepersUpdateInterval: ethers.BigNumber.from("30"),
-        charityRaffleDuration: ethers.BigNumber.from("30"), // 30 seconds (just for testing)
-        raffleEntranceFee: ethers.utils.parseEther("0.1"),
-        jackpot: ethers.utils.parseEther("1"),
-        callbackGasLimit: ethers.BigNumber.from("500000"), // 500,000 gas
+        keepersUpdateInterval: BigInt("30"),
+        charityRaffleDuration: BigInt("30"), // 30 seconds (just for testing)
+        raffleEntranceFee: ethers.parseEther("0.1"),
+        jackpot: ethers.parseEther("1"),
+        callbackGasLimit: BigInt("500000"), // 500,000 gas
         vrfCoordinatorV2: "",
         charity1: "",
         charity2: "",
@@ -38,13 +37,13 @@ export const networkConfig: networkConfigInfo = {
     },
     4: {
         name: "rinkeby",
-        subscriptionId: ethers.BigNumber.from("5864"), // your VRF subscriptionId
+        subscriptionId: BigInt("5864"), // your VRF subscriptionId
         gasLane: "0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc", // 30 gwei
-        keepersUpdateInterval: ethers.BigNumber.from("30"),
-        charityRaffleDuration: ethers.BigNumber.from("30"), // 30 seconds (just for testing)
-        raffleEntranceFee: ethers.utils.parseEther("0.1"),
-        jackpot: ethers.utils.parseEther("0.2"),
-        callbackGasLimit: ethers.BigNumber.from("500000"), // 500,000 gas
+        keepersUpdateInterval: BigInt("30"),
+        charityRaffleDuration: BigInt("30"), // 30 seconds (just for testing)
+        raffleEntranceFee: ethers.parseEther("0.1"),
+        jackpot: ethers.parseEther("0.2"),
+        callbackGasLimit: BigInt("500000"), // 500,000 gas
         vrfCoordinatorV2: "0x6168499c0cFfCaCD319c818142124B7A15E857ab",
         charity1: "0x8423f6c5f0895914e0C8A4eF523C0A1d5c8632f6", // use extra wallet accounts to test
         charity2: "0x70185775Ae9767751c218d9baAeffBC9b5fD5b34",
